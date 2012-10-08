@@ -1,7 +1,0 @@
-#include <avr/io.h>
-#include "lcd.h"
-
-void main(){
-
-	lcd_init(LCD)
-}

@@ -1,9 +1,0 @@
-#include <avr/io.h>
-#include "lcd.h"
-
-int main(){
-
-
-
-	return 0;
-}
