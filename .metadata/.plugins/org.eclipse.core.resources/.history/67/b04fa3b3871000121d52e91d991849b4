@@ -1,0 +1,27 @@
+/*
+ * lcd.h
+ *
+ *  Created on: Oct 7, 2012
+ *      Author: stiborek
+ */
+
+#ifndef LCD_H_
+#define LCD_H_
+
+#include <avr/io.h>
+#include <util/delay.h>
+#include "lcd_settings.h"
+
+void LCD_init(void);
+void LCD_WriteCommand (unsigned char CMD);
+void LCD_WriteData (unsigned char Data);
+void LCD_DisplayString_F(char row, char column, const unsigned char *string);
+void LCD_Cursor(char row, char column);
+
+#define ENABLE_LCD LCD_COMMAND_PORT |= 0x80
+#define DISABLE_LCD LCD_COMMAND_PORT &= ~0x80
+
+#define SET_LCD_DATA LCD_COMMAND_PORT |= 0x20
+#define SET_LCD_CMD LCD_COMMAND_PORT &= ~0x20
+
+#endif /* LCD_H_ */

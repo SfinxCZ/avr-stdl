@@ -1,0 +1,11 @@
+#include <avr/io.h>
+#include "lcd.h"
+
+
+
+int main(){
+
+	lcd_init();
+
+	return 0;
+}

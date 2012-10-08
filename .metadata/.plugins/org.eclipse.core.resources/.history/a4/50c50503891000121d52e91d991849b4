@@ -1,0 +1,16 @@
+/*
+ * lcd.h
+ *
+ *  Created on: Oct 7, 2012
+ *      Author: stiborek
+ */
+
+#ifndef LCD_H_
+#define LCD_H_
+
+#include <avr/io.h>
+#include <util/delay.h>
+#include "lcd_settings.h"
+
+
+#endif /* LCD_H_ */

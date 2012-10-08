@@ -1,0 +1,60 @@
+/*
+ * main.c
+ *
+ *  Created on: Oct 5, 2012
+ *      Author: stiborek
+ */
+#include <avr/io.h>
+#include <avr/delay.h>
+#define bit_get(p,m) ((p) & (m))
+#define bit_set(p,m) ((p) |= (m))
+#define bit_clear(p,m) ((p) &= ~(m))
+#define bit_flip(p,m) ((p) ^= (m))
+
+
+
+void pulseenable(void){
+    bit_set(PORTD,PD7);
+    _delay_us(1);//hold enable high for a us
+    bit_clear(PORTD,PD7);//clear enable pin
+    _delay_us(3); //hold instruction before clearing to meet holdup time req.
+}
+
+//RW should be grounded
+int main(void) {
+
+        DDRB = 0xFF; //setup PORTB as output (PB0-7 are data lines)
+        bit_set(DDRD,DDD6); //setup PD6 as output (R/S line)
+        bit_set(DDRD,DDD7); //setup PD7 as output (Enable line)
+
+        _delay_ms(50); //wait at least 30ms after up to voltage
+
+
+        PORTB=56; //write to enable 2 lines,8 bit mode and 8x10 per character
+        pulseenable();
+        PORTB=0;
+        _delay_us(50);
+
+        PORTB=15; //turn display on and enable blinking cursor
+        pulseenable();
+        PORTB=0;
+        _delay_us(50);
+
+        PORTB=1;//clear display
+        pulseenable();
+        PORTB=0;
+        _delay_ms(5);
+
+        PORTB=6; //set increment mode with no shift
+        pulseenable();
+        PORTB=0;
+        _delay_us(50);
+
+        while(1){} //do nothing
+
+
+
+return(0);
+
+
+}

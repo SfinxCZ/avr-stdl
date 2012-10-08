@@ -1,0 +1,17 @@
+#include <avr/io.h>
+#include "lcd.h"
+
+int main() {
+	DPDDR = 0xff;
+	CPDDR = 0xf0;
+
+	_delay_ms(500);
+	LCDInitialize();
+	printStringLCD("Circuits Today");
+	_delay_ms(5000);
+	LCDcmd(LCDClear);
+	prinStringLCD(“Print an Integer”);
+	LCDcmd(0xc0);
+	printIntLCD(990);
+	return 0;
+}

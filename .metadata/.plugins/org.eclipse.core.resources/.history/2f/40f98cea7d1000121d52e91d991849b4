@@ -1,0 +1,14 @@
+/*
+ * lcd_settings.h
+ *
+ *  Created on: Oct 7, 2012
+ *      Author: stiborek
+ */
+
+#ifndef LCD_SETTINGS_H_
+#define LCD_SETTINGS_H_
+
+#define LCD_COMMAND_PORT PORTD
+
+
+#endif /* LCD_SETTINGS_H_ */

@@ -1,0 +1,7 @@
+#include <avr/io.h>
+#include "lcd.h"
+
+void main(){
+
+	lcd_init(LCD_DISP_ON_CURSOR_BLINK)
+}

@@ -1,0 +1,17 @@
+/*
+ * lcd.h
+ *
+ *  Created on: Oct 7, 2012
+ *      Author: stiborek
+ */
+
+#ifndef LCD_H_
+#define LCD_H_
+
+#include <util/delay.h>
+
+void my_delay(double ms){
+	_delay_ms(ms);
+}
+
+#endif /* LCD_H_ */

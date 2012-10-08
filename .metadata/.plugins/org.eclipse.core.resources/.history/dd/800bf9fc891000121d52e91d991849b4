@@ -1,0 +1,19 @@
+/*
+ * main.c
+ *
+ *  Created on: Oct 5, 2012
+ *      Author: stiborek
+ */
+#include <avr/io.h>
+#include <util/delay.h>
+#include "lcd.h"
+
+//RW should be grounded
+int main(void) {
+
+LCDinit();
+
+return(0);
+
+
+}
