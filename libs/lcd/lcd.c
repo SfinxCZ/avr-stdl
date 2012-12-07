@@ -515,12 +515,12 @@ void lcd_putsnl(const char *s){
 	lcd_clrscr();
 	currentLine = 0;
 #elif LCD_LINES==2
-	if(currentLine == 1){
+	if(currentLine == 2){
 		currentLine = 0;
 		lcd_clrscr();
 	}
 #elif LCD_LINES==4
-	if(currentLine == 3){
+	if(currentLine == 4){
 		currentLine = 0;
 		lcd_clrscr();
 	}
