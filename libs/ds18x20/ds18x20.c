@@ -46,9 +46,7 @@ changelog:
 /* functions for debugging-output - undef DS18X20_VERBOSE in .h
    if you run out of program-memory */
 #include <string.h>
-#include "uart.h"
-#include "uart_addon.h"
-
+#include "logger.h"
 static int16_t DS18X20_raw_to_decicelsius( uint8_t fc, uint8_t sp[] );
 
 void DS18X20_show_id_uart( uint8_t *id, size_t n )
@@ -56,33 +54,33 @@ void DS18X20_show_id_uart( uint8_t *id, size_t n )
 	size_t i;
 
 	for( i = 0; i < n; i++ ) {
-		if ( i == 0 ) { uart_puts_P( "FC:" ); }
-		else if ( i == n-1 ) { uart_puts_P( "CRC:" ); }
-		if ( i == 1 ) { uart_puts_P( "SN: " ); }
-		uart_puthex_byte(id[i]);
-		uart_puts_P(" ");
+		if ( i == 0 ) { logDebug( "FC:" ); }
+		else if ( i == n-1 ) { logDebug( "CRC:" ); }
+		if ( i == 1 ) { logDebug( "SN: " ); }
+		logDebug_int(id[i]);
+		logDebug(" ");
 		if ( i == 0 ) {
-			if ( id[0] == DS18S20_FAMILY_CODE ) { uart_puts_P ("(18S)"); }
-			else if ( id[0] == DS18B20_FAMILY_CODE ) { uart_puts_P ("(18B)"); }
-			else if ( id[0] == DS1822_FAMILY_CODE ) { uart_puts_P ("(22)"); }
-			else { uart_puts_P ("( ? )"); }
+			if ( id[0] == DS18S20_FAMILY_CODE ) { logDebug ("(18S)"); }
+			else if ( id[0] == DS18B20_FAMILY_CODE ) { logDebug ("(18B)"); }
+			else if ( id[0] == DS1822_FAMILY_CODE ) { logDebug ("(22)"); }
+			else { logDebug ("( ? )"); }
 		}
 	}
 	if ( crc8( id, OW_ROMCODE_SIZE) )
-		uart_puts_P( " CRC FAIL " );
+		logInfo( " CRC FAIL " );
 	else 
-		uart_puts_P( " CRC O.K. " );
+		logInfo( " CRC O.K. " );
 }
 
 static void show_sp_uart( uint8_t *sp, size_t n )
 {
 	size_t i;
 
-	uart_puts_P( "SP:" );
+	logDebug( "SP:" );
 	for( i = 0; i < n; i++ ) {
-		if ( i == n-1 ) { uart_puts_P( "CRC:" ); }
-		uart_puthex_byte(sp[i]);
-		uart_puts_P(" ");
+		if ( i == n-1 ) { logDebug( "CRC:" ); }
+		logDebug_int(sp[i]);
+		logDebug(" ");
 	}
 }
 
@@ -149,15 +147,15 @@ static void DS18X20_uart_put_temp(const uint8_t subzero,
 	char buffer[sizeof(int)*8+1];
 	size_t i;
 	
-	uart_putc((subzero)?'-':'+');
-	uart_put_int((int)cel);
-	uart_puts_P(".");
+	logDebug((subzero)?"-":"+");
+	logDebug_int((int)cel);
+	logDebug(".");
 	itoa(cel_frac_bits*DS18X20_FRACCONV,buffer,10);
 	for ( i = 0; i < 4-strlen(buffer); i++ ) {
-		uart_puts_P("0");
+		logDebug("0");
 	}
-	uart_puts(buffer);
-	uart_puts_P("°C");
+	logDebug(buffer);
+	logDebug("C");
 }
 
 /* verbose output rom-search follows read-scratchpad in one loop */
@@ -175,12 +173,12 @@ uint8_t DS18X20_read_meas_all_verbose( void )
 		diff = ow_rom_search( diff, &id[0] );
 
 		if( diff == OW_PRESENCE_ERR ) {
-			uart_puts_P( "No Sensor found\r" );
+			logWarn( "No Sensor found\r" );
 			return OW_PRESENCE_ERR; // <--- early exit!
 		}
 		
 		if( diff == OW_DATA_ERR ) {
-			uart_puts_P( "Bus Error\r" );
+			logError( "Bus Error\r" );
 			return OW_DATA_ERR;     // <--- early exit!
 		}
 		
@@ -189,8 +187,6 @@ uint8_t DS18X20_read_meas_all_verbose( void )
 		if( id[0] == DS18B20_FAMILY_CODE || id[0] == DS18S20_FAMILY_CODE ||
 		    id[0] == DS1822_FAMILY_CODE ) { 
 			// temperature sensor
-			
-			uart_putc ('\r');
 			
 			ow_byte_wr( DS18X20_READ );           // read command
 			
@@ -201,64 +197,59 @@ uint8_t DS18X20_read_meas_all_verbose( void )
 			show_sp_uart( sp, DS18X20_SP_SIZE );
 
 			if ( crc8( &sp[0], DS18X20_SP_SIZE ) ) {
-				uart_puts_P( " CRC FAIL " );
+				logInfo( " CRC FAIL " );
 			} else {
-				uart_puts_P( " CRC O.K. " );
+				logInfo( " CRC O.K. " );
 			}
-			uart_putc ('\r');
 		
 			meas = sp[0]; // LSB Temp. from Scrachpad-Data
 			meas |= (uint16_t) (sp[1] << 8); // MSB
 			
-			uart_puts_P( " T_raw=");
-			uart_puthex_byte( (uint8_t)(meas >> 8) );
-			uart_puthex_byte( (uint8_t)meas );
-			uart_puts_P( " " );
+			logDebug( " T_raw=");
+			logDebug_int( (uint8_t)(meas >> 8) );
+			logDebug_int( (uint8_t)meas );
+			logDebug( " " );
 
 			if( id[0] == DS18S20_FAMILY_CODE ) { // 18S20
-				uart_puts_P( "S20/09" );
+				logDebug( "S20/09" );
 			}
 			else if ( id[0] == DS18B20_FAMILY_CODE ||
 			          id[0] == DS1822_FAMILY_CODE ) { // 18B20 or 1822
 				i=sp[DS18B20_CONF_REG];
 				if ( (i & DS18B20_12_BIT) == DS18B20_12_BIT ) {
-					uart_puts_P( "B20/12" );
+					logDebug( "B20/12" );
 				}
 				else if ( (i & DS18B20_11_BIT) == DS18B20_11_BIT ) {
-					uart_puts_P( "B20/11" );
+					logDebug( "B20/11" );
 				}
 				else if ( (i & DS18B20_10_BIT) == DS18B20_10_BIT ) {
-					uart_puts_P( " B20/10 " );
+					logDebug( " B20/10 " );
 				}
 				else { // if ( (i & DS18B20_9_BIT) == DS18B20_9_BIT ) { 
-					uart_puts_P( "B20/09" );
+					logDebug( "B20/09" );
 				}
 			}			
-			uart_puts_P(" ");
+			logDebug(" ");
 			
 			DS18X20_meas_to_cel( id[0], sp, &subzero, &cel, &cel_frac_bits );
 			DS18X20_uart_put_temp( subzero, cel, cel_frac_bits );
 
 			decicelsius = DS18X20_raw_to_decicelsius( id[0], sp );
 			if ( decicelsius == DS18X20_INVALID_DECICELSIUS ) {
-				uart_puts_P("* INVALID *");
+				logInfo("* INVALID *");
 			} else {
-				uart_puts_P(" conv: ");
-				uart_put_int(decicelsius);
-				uart_puts_P(" deci°C ");
+				logInfo(" conv: ");
+				logInfo_int(decicelsius);
+				logInfo(" deciï¿½C ");
 				DS18X20_format_from_decicelsius( decicelsius, s, 10 );
-				uart_puts_P(" fmt: ");
-				uart_puts(s);
-				uart_puts_P(" °C ");
+				logInfo(" fmt: ");
+				logInfo(s);
+				logInfo(" ï¿½C ");
 			}
 
-			uart_puts("\r");
-			
 		} // if meas-sensor
 		
 	} // loop all sensors
-	
-	uart_puts_P( "\r" );
 	
 	return DS18X20_OK;
 }
@@ -334,7 +325,7 @@ uint8_t DS18X20_start_meas( uint8_t with_power_extern, uint8_t id[])
 		ret = DS18X20_OK;
 	} 
 	else { 
-		uart_puts_P_verbose( "DS18X20_start_meas: Short Circuit!\r" );
+		logDebug( "DS18X20_start_meas: Short Circuit!\r" );
 		ret = DS18X20_START_FAIL;
 	}
 
@@ -452,7 +443,7 @@ uint8_t DS18X20_format_from_decicelsius( int16_t decicelsius, char str[], uint8_
 	div_t dt;
 	uint8_t ret;
 
-	// range from -550:-55.0°C to 1250:+125.0°C -> min. 6+1 chars
+	// range from -550:-55.0ï¿½C to 1250:+125.0ï¿½C -> min. 6+1 chars
 	if ( n >= (6+1) && decicelsius > -1000 && decicelsius < 10000 ) {
 
 		if ( decicelsius < 0) {
@@ -618,7 +609,7 @@ uint8_t DS18X20_format_from_maxres( int32_t temperaturevalue, char str[], uint8_
 	ldiv_t ldt;
 	uint8_t ret;
 
-	// range from -550000:-55.0000°C to 1250000:+125.0000°C -> min. 9+1 chars
+	// range from -550000:-55.0000ï¿½C to 1250000:+125.0000ï¿½C -> min. 9+1 chars
 	if ( n >= (9+1) && temperaturevalue > -1000000L && temperaturevalue < 10000000L ) {
 
 		if ( temperaturevalue < 0) {
